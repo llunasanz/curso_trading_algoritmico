@@ -1,0 +1,73 @@
+
+
+```{r}
+# library for import data from yahoo finance
+suppressMessages(library(quantmod))
+# library for data manipulation
+suppressMessages(library(dplyr))
+# library for data visualization
+suppressMessages(library(ggplot2))
+# library for time series analysis
+suppressMessages(library(forecast))
+```
+ 
+```{r}
+# Download AAPL data from yahoo finance
+stock_tiker <- "NVDA"
+# stock <- getSymbols("AAPL", from = "2010-01-01", to = "2023-12-31")
+stock <- getSymbols("NVDA", from = "2010-01-01", to = "2023-12-31")
+```
+ 
+```{r}
+# Convert data to data frame
+stock <- as.data.frame(eval(parse(text = stock_tiker)))
+```
+
+ 
+```{r}
+open_tiker <- paste(stock_tiker, "Open", sep = ".")
+close_tiker <- paste(stock_tiker, "Close", sep = ".")
+
+stock_mod <- stock %>% mutate(
+  diff_close_open = eval(parse(text = open_tiker)) - lag(
+    eval(parse(text = close_tiker)), 1
+  ),
+  diff_close_open_rel = diff_close_open / lag(eval(parse(text = close_tiker)), 1)*100
+) %>% filter(!is.na(diff_close_open))
+```
+ 
+```{r}
+mean(stock_mod$diff_close_open_rel)
+median(stock_mod$diff_close_open_rel)
+
+# Normality test
+shapiro.test(stock_mod$diff_close_open_rel)
+
+# Tests
+# t.test(stock_mod$diff_close_open_rel)
+wilcox.test(stock_mod$diff_close_open_rel)
+```
+ 
+```{r}
+# Plot distribution of diff_close_open
+ggplot(stock_mod, aes(x = diff_close_open)) +
+  geom_histogram(binwidth = 0.5, fill = "lightblue", color = "black") +
+  labs(title = "Distribution of diff_close_open", x = "diff_close_open", y = "Count")
+```
+ 
+```{r}
+# Iteration of the above process for all stocks
+# Download data from yahoo finance
+stocks <- c("AAPL", "MSFT", "AMZN", "GOOG", "FB", "TSLA", "BRK-A", "NVDA", "JPM", "JNJ")
+stocks_data <- lapply(stocks, function(x) getSymbols(x, from = "2010-01-01", to = "2023-12-31"))
+```
+
+```{r}
+# Convert data to data frame
+stocks_data <- lapply(stocks_data, function(x) as.data.frame(x))
+```
+
+```{r}
+
+```
+
